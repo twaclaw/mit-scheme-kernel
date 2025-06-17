@@ -1,14 +1,18 @@
 [project]
 name = "mit_scheme_kernel"
-version = "0.1.0"
+dynamic = ['version']
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["metakernel>=0.30.3", "pyyaml>=6.0.2"]
 
 [project.optional-dependencies]
-dev = ["ruff"]
+dev = ["ruff", "versioneer[toml]"]
 tests = ["pytest", "pre-commit"]
+
+[build-system]
+requires = ["setuptools", "wheel", "versioneer[toml]"]
+build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools.package-data]
@@ -19,3 +23,32 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.isort]
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+
+
+[tool.ruff]
+line-length = 179
+indent-width = 4
+
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["F722"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "src/mit_scheme_kernel/_version.py"
+versionfile_build = "src/mit_scheme_kernel/_version.py"
+tag_prefix = ""
