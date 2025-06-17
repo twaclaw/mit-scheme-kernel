@@ -1,0 +1,21 @@
+[project]
+name = "mit_scheme_kernel"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["metakernel>=0.30.3", "pyyaml>=6.0.2"]
+
+[project.optional-dependencies]
+dev = ["ruff"]
+tests = ["pytest", "pre-commit"]
+
+
+[tool.setuptools.package-data]
+mypackage = ["config.yaml"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

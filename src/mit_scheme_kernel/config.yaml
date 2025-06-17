@@ -1,0 +1,5 @@
+executable: mit-scheme
+behavior_on_error_prompt: restart_and_raise
+restart_command: (RESTART 1)
+filter_output: true
+return_only_last_output: true
