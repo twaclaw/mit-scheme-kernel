@@ -6,7 +6,6 @@ from metakernel import REPLWrapper
 PROMPT_RE = re.compile(r"\d (?:\]=>|error>)")
 ERROR_RE = re.compile(r"\d error>")  # Regex to match MIT Scheme error messages
 CONTINUATION_PROMPT_RE = re.compile(r"")
-VALUE_RE = r"^;Value:\s*([^\s]+)"
 
 UNBALANCED_BRACKETS_ERROR = "Unbalanced parentheses in input code."
 
@@ -19,6 +18,7 @@ class KernelConfig:
     restart_command: str
     filter_output: bool
     return_only_last_output: bool
+    output_value_regex: str
 
 
 
@@ -40,6 +40,7 @@ class MitSchemeWrapper(REPLWrapper):
         self.restart_command = kernel_config.restart_command
         self.filter_output = kernel_config.filter_output
         self.return_only_last_output = kernel_config.return_only_last_output
+        self.output_value_regex = kernel_config.output_value_regex
 
     def _check_bracket_balance(self, line):
         for char in line:
@@ -52,9 +53,8 @@ class MitSchemeWrapper(REPLWrapper):
     def _restart_bracket_balance(self):
         self.bracket_balance = 0
 
-    @staticmethod
-    def _filter_value(s: str) -> str:
-        match = re.search(VALUE_RE, s)
+    def _filter_value(self, s: str) -> str:
+        match = re.search(self.output_value_regex, s)
         return match.group(1) if match else s
 
     def run_command(self, code, timeout=-1, stream_handler=None, stdin_handler=None):
