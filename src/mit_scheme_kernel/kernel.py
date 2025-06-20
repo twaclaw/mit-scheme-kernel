@@ -1,11 +1,12 @@
 import importlib.resources
 import os
 import sys
+from dataclasses import replace
 
 import yaml
 from metakernel import ProcessMetaKernel, pexpect
 
-from mit_scheme_kernel.repl import PROMPT_RE, MitSchemeWrapper
+from mit_scheme_kernel.repl import PROMPT_RE, KernelConfig, MitSchemeWrapper
 
 
 class MitSchemeKernel(ProcessMetaKernel):
@@ -31,17 +32,26 @@ class MitSchemeKernel(ProcessMetaKernel):
     }
 
     def __init__(self, *args, **kwargs):
-        super(MitSchemeKernel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._process = None
         default_config = importlib.resources.files("mit_scheme_kernel").joinpath(
             "config.yaml"
         )
-        with open(os.getenv("MIT_SCHEME_KERNEL_CONFIG", default_config)) as f:
-            self.mit_scheme_config = yaml.safe_load(f)
+        with open(default_config) as f:
+            params = yaml.safe_load(f)
+            self.mit_scheme_config = KernelConfig(**params)
+
+        if user_config_path := os.getenv("MIT_SCHEME_KERNEL_CONFIG"):
+            with open(user_config_path) as f:
+                user_config = yaml.safe_load(f)
+                update = {k: v for k, v in user_config.items() if hasattr(self.mit_scheme_config, k)}
+                self.mit_scheme_config = replace(
+                    self.mit_scheme_config, **update
+                )
 
     def do_execute(self, code, silent=True, **kwargs):
         if not self._process:
-            self.mit_scheme_cmd = self.mit_scheme_config.get("executable", "mit-scheme")
+            self.mit_scheme_cmd = self.mit_scheme_config.executable
             self._process = pexpect.spawn(self.mit_scheme_cmd, encoding="utf-8")
         self._process.sendline(code)
         super().do_execute_direct(code, silent=False)
@@ -57,9 +67,6 @@ class MitSchemeKernel(ProcessMetaKernel):
         else:
             raise Exception(f"{self.mit_scheme_cmd} not found in PATH. ")
 
-        # We don't want help commands getting stuck,
-        # use a non interactive PAGER
-
         wrapper = MitSchemeWrapper(
             program,
             PROMPT_RE,
@@ -67,27 +74,3 @@ class MitSchemeKernel(ProcessMetaKernel):
             kernel_config=self.mit_scheme_config,
         )
         return wrapper
-
-
-# Instantiate for testing
-# if __name__ == "__main__":
-#     kernel = MitSchemeKernel()
-#     # Test if mit-scheme process is started
-#     result = kernel.do_execute("(* 3 4)", silent=False)
-#     if kernel._process and kernel._process.isalive():
-#         print("mit-scheme process started successfully.")
-#         # Execute additional Scheme code
-#         commands = [
-#             """(define pi 3.14159)
-# (define square (lambda(x) (* x x)
-# ))
-# (* 4 pi (square 5))
-# dfadfa
-#         """,
-
-#         ]
-#         for command in commands:
-#             result = kernel.do_execute(command, silent=False)
-#             print(result)
-#     else:
-#         print("Failed to start mit-scheme process.")

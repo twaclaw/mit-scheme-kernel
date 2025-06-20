@@ -1,6 +1,5 @@
 import re
-from enum import StrEnum
-from typing import Any
+from dataclasses import dataclass
 
 from metakernel import REPLWrapper
 
@@ -9,18 +8,25 @@ ERROR_RE = re.compile(r"\d error>")  # Regex to match MIT Scheme error messages
 CONTINUATION_PROMPT_RE = re.compile(r"")
 VALUE_RE = r"^;Value:\s*([^\s]+)"
 
+UNBALANCED_BRACKETS_ERROR = "Unbalanced parentheses in input code."
 
-class OnError(StrEnum):
-    IGNORE = "ignore"
-    RAISE = "raise"
-    RESTART_AND_RAISE = "restart_and_raise"
+
+
+@dataclass
+class KernelConfig:
+    executable: str
+    auto_restart_on_error: bool
+    restart_command: str
+    filter_output: bool
+    return_only_last_output: bool
+
 
 
 class MitSchemeWrapper(REPLWrapper):
     def __init__(
         self,
         *args,
-        kernel_config: dict[str, Any] = {},
+        kernel_config: KernelConfig,
         **kwargs,
     ):
         # Remove 'continuation_prompt_regex' from kwargs if present
@@ -29,14 +35,11 @@ class MitSchemeWrapper(REPLWrapper):
 
         self.child.delaybeforesend = 0.0
         self.bracket_balance = 0
-        self.behavior_on_error_prompt = OnError(kernel_config.get(
-            "behavior_on_error_prompt", OnError.RESTART_AND_RAISE
-        ))
-        self.restart_command = kernel_config.get("restart_command", "(RESTART 1)")
-        self.filter_output = kernel_config.get("filter_output", True)
-        self.return_only_last_output = kernel_config.get(
-            "return_only_last_output", False
-        )
+
+        self.restart = kernel_config.auto_restart_on_error
+        self.restart_command = kernel_config.restart_command
+        self.filter_output = kernel_config.filter_output
+        self.return_only_last_output = kernel_config.return_only_last_output
 
     def _check_bracket_balance(self, line):
         for char in line:
@@ -50,15 +53,19 @@ class MitSchemeWrapper(REPLWrapper):
         self.bracket_balance = 0
 
     @staticmethod
-    def _filter_value(s: str) -> str | None:
+    def _filter_value(s: str) -> str:
         match = re.search(VALUE_RE, s)
-        return match.group(1) if match else None
+        return match.group(1) if match else s
 
     def run_command(self, code, timeout=-1, stream_handler=None, stdin_handler=None):
         lines = code.splitlines()
         res = []
+        error: bool = False
 
         for line in lines:
+            if not line.strip():
+                continue
+
             self.sendline(line)
             if self._check_bracket_balance(line):
                 self._expect_prompt(timeout=timeout)
@@ -67,30 +74,27 @@ class MitSchemeWrapper(REPLWrapper):
                 self.child.expect(CONTINUATION_PROMPT_RE, timeout=timeout)
 
             if re.match(ERROR_RE, self.child.after):
-                if self.behavior_on_error_prompt == OnError.RESTART_AND_RAISE:
-                    self._restart_bracket_balance()
-                    self.sendline(self.restart_command)
-                    self._expect_prompt(timeout=timeout)
-                    res.append(self.child.before)
-                    raise ValueError(
-                        f"Error detected in input line {line}. Restart command '{self.restart_command}' executed. "
-                    )
-                elif self.behavior_on_error_prompt == OnError.RAISE:
-                    raise ValueError(
-                        f"Error detected in input line {line}. You have to manually execute one of the RESTART commands."
-                    )
-                break
+                error = True
+
+        if error:
+            if self.restart:
+                self._restart_bracket_balance()
+                self.sendline(self.restart_command)
+                self._expect_prompt(timeout=timeout)
+                res.append(self.child.before)
+                res.append(f"Automatically restarted REPL with command: {self.restart_command}")
+
 
         if self.bracket_balance != 0:
-            raise ValueError("Unbalanced parentheses in input code.")
+            res = [s.strip() for s in res if s.strip() and s is not None]
+            error_msg = UNBALANCED_BRACKETS_ERROR
+            if len(res) > 0:
+                error_msg += f"\nIntermediate output: {'\n'.join(res)}"
+            raise ValueError(error_msg)
 
         if self.return_only_last_output:
             res = res[-1:]
 
-        res = [s.strip() for s in res if s.strip()]
+        res = [s.strip() for s in res if s.strip() and s is not None]
 
-        return (
-            "\n".join([self._filter_value(s) for s in res])
-            if self.filter_output
-            else "\n".join(res)
-        )
+        return "\n".join([self._filter_value(s) for s in res]) if self.filter_output else "\n".join(res)
