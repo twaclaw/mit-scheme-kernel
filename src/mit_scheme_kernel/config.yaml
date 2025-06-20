@@ -1,5 +1,16 @@
+# If an alternative command, for instance `mechanics` is used to start the REPL,
+# it can be specified here.
 executable: mit-scheme
-behavior_on_error_prompt: restart_and_raise
+
+# if an error occurs in the mit-scheme REPL, the following options can be used to
+# automatically restart the REPL
+auto_restart_on_error: false
 restart_command: (RESTART 1)
+
+# mit-scheme outputs value as ';Value: <value>'. If filter_output is true,
+# values are extracted from the output and returned as <value>
 filter_output: true
-return_only_last_output: true
+
+# If a block of code of executed, mit-scheme outputs the results of all intermediate
+# expressions. If return_only_last_output is true, only the last output is returned.
+return_only_last_output: false
