@@ -3,7 +3,7 @@ name = "mit-scheme-kernel"
 dynamic = ['version']
 description = "A MIT/GNU Scheme Jupyter kernel"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["metakernel>=0.30.3", "pyyaml>=6.0.2"]
 
 [project.optional-dependencies]

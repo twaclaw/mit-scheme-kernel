@@ -10,7 +10,6 @@ CONTINUATION_PROMPT_RE = re.compile(r"")
 UNBALANCED_BRACKETS_ERROR = "Unbalanced parentheses in input code."
 
 
-
 @dataclass
 class KernelConfig:
     executable: str
@@ -19,7 +18,6 @@ class KernelConfig:
     filter_output: bool
     return_only_last_output: bool
     output_value_regex: str
-
 
 
 class MitSchemeWrapper(REPLWrapper):
@@ -84,12 +82,12 @@ class MitSchemeWrapper(REPLWrapper):
                 res.append(self.child.before)
                 res.append(f"Automatically restarted REPL with command: {self.restart_command}")
 
-
         if self.bracket_balance != 0:
             res = [s.strip() for s in res if s.strip() and s is not None]
             error_msg = UNBALANCED_BRACKETS_ERROR
             if len(res) > 0:
-                error_msg += f"\nIntermediate output: {'\n'.join(res)}"
+                res = "\n".join(res)
+                error_msg += f"\nIntermediate output: {res}"
             raise ValueError(error_msg)
 
         if self.return_only_last_output:
