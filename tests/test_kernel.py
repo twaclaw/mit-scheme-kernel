@@ -45,6 +45,22 @@ def test_single_line_statements(monkeypatch, command: str, expected_output: str)
     result = get_log_text(kernel)
     assert expected_output in result
 
+@pytest.mark.parametrize(
+    "command",
+    [
+        "\n\n(* 3 4)"
+        "\n\n\n(* 3 4)"
+        "(* 3 4)\n\n"
+    ],
+)
+def test_single_line_statements_strip_line(monkeypatch, command: str):
+    config = {"filter_output": True, "return_only_last_output": True}
+
+    kernel = get_mit_scheme_kernel(monkeypatch, config=config)
+    kernel.do_execute(code=command)
+    result = get_log_text(kernel)
+    assert "12" in result
+
 
 @pytest.mark.parametrize(
     "command",
