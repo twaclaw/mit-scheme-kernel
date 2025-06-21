@@ -40,7 +40,7 @@ class MitSchemeWrapper(REPLWrapper):
         self.restart_command = kernel_config.restart_command
         self.filter_output = kernel_config.filter_output
         self.return_only_last_output = kernel_config.return_only_last_output
-        self.output_value_regex = kernel_config.output_value_regex
+        self.output_value_regex = re.compile(kernel_config.output_value_regex)
 
     def _check_bracket_balance(self, line):
         for char in line:
@@ -61,7 +61,7 @@ class MitSchemeWrapper(REPLWrapper):
         lines = code.splitlines()
         res = []
         error: bool = False
-
+        self._restart_bracket_balance()
         for line in lines:
             if not line.strip():
                 continue

@@ -6,7 +6,7 @@ from dataclasses import replace
 import yaml
 from metakernel import ProcessMetaKernel, pexpect
 
-from mit_scheme_kernel.repl import PROMPT_RE, KernelConfig, MitSchemeWrapper
+from .repl import PROMPT_RE, KernelConfig, MitSchemeWrapper
 
 
 class MitSchemeKernel(ProcessMetaKernel):
@@ -15,7 +15,7 @@ class MitSchemeKernel(ProcessMetaKernel):
     language = "mit-scheme"
     language_version = "12.1"
     banner = (
-        "MIT Scheme Kernel - A kernel for running MIT-Scheme code in Jupyter notebooks."
+        "MIT/GNU Scheme - A MIT/GNU Scheme Jupyter kernel"
     )
     language_info = {
         "mimetype": "text/x-scheme",
@@ -25,10 +25,10 @@ class MitSchemeKernel(ProcessMetaKernel):
     }
     kernel_json = {
         "argv": [sys.executable, "-m", "mit_scheme_kernel", "-f", "{connection_file}"],
-        "display_name": "MIT Scheme",
+        "display_name": "MIT/GNU Scheme",
         "language": "scheme",
         "codemirror_mode": "scheme",
-        "name": "mit_scheme_kernel",
+        "name": "mit-scheme-kernel",
     }
 
     def __init__(self, *args, **kwargs):
