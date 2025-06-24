@@ -48,7 +48,7 @@ To change the default configuration, create a YAML file with a subset of the opt
 For example, to change the `mit-scheme` executable to `mechanics`, which is the executable created when installing the [Scmutils library](https://groups.csail.mit.edu/mac/users/gjs/6946/installation.html)):
 
 ```bash
-cat << EOF > /tmp/my_config.yaml
+cat > /tmp/my_config.yaml << EOF
 executable: mechanics
 output_value_regex: ^\#\|\s*([^\s]+)\s*\|\#$
 EOF
