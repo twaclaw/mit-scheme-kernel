@@ -1,59 +1,84 @@
 [project]
 name = "mit-scheme-kernel"
 dynamic = ['version']
-description = "A MIT/GNU Scheme Jupyter kernel"
+description = "A MIT/GNU Scheme Jupyter kernel based on metakernel"
 readme = "README.md"
 requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+keywords = [
+    "mit-scheme-kernel",
+    "mit-scheme",
+    "mechanics",
+    "scmutils",
+    "jupyter",
+    "scheme",
+]
+authors = [{ name = "Diego Sandoval", email = "dsandovalv@gmail.com" }]
+maintainers = [{ name = "Diego Sandoval", email = "dsandovalv@gmail.com" }]
+
 dependencies = ["metakernel>=0.30.3", "pyyaml>=6.0.2"]
 
 [project.optional-dependencies]
-tests = ["pytest>=8.4.1", "pre-commit", "pytest-cov>=6.2.1"]
-dev = ["ruff", "versioneer[toml]"]
+dev = ["pre-commit", "hatch", "ruff"]
 
 [build-system]
-requires = ["setuptools", "wheel", "versioneer[toml]"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 
-[tool.setuptools.package-data]
-mypackage = ["config.yaml"]
+[project.urls]
+Homepage = "https://github.com/twaclaw/mit-scheme-kernel"
+Documentation = "https://github.com/twaclaw/mit-scheme-kernel"
+Issues = "https://github.com/twaclaw/mit-scheme-kernel/issues"
 
-[tool.setuptools]
-package-dir = { "" = "src" }
+[tool.hatch.version]
+source = "vcs"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/mit_scheme_kernel"]
+include = ["src/mit_scheme_kernel/config.yaml"]
 
-[tool.isort]
-line_length = 88
-multi_line_output = 3
-include_trailing_comma = true
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/mit_scheme_kernel",
+    "src/mit_scheme_kernel/config.yaml",
+    "README.md",
+]
+
+[tool.hatch.envs.default]
+installer = "uv"
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.10", "3.11", "3.12", "3.13"]
+
+[tool.hatch.envs.hatch-test]
+dependencies = ["pytest", "pytest-cov"]
+dev-mode = true
 
 [tool.ruff]
 line-length = 179
 indent-width = 4
 
-
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 ignore = ["F722"]
 
-[tool.ruff.lint.pydocstyle]
-convention = "numpy"
-
 [tool.ruff.format]
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
-
-[tool.versioneer]
-VCS = "git"
-style = "pep440"
-versionfile_source = "src/mit_scheme_kernel/_version.py"
-versionfile_build = "src/mit_scheme_kernel/_version.py"
-tag_prefix = ""
-
-[tool.pytest.ini_options]
-testpaths = ["tests", "src/mit_scheme_kernel"]
-python_files = ["test_*.py", "*_test.py", "test.py"]
-addopts = "--cov=mit_scheme_kernel --cov-report=term-missing"
