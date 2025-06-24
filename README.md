@@ -45,7 +45,7 @@ A few configuration options are available to customize the kernel's behavior. Se
 
 To change the default configuration, create a YAML file with a subset of the options that you want to override, and then point the `MIT_SCHEME_KERNEL_CONFIG` environment variable to the absolute path of that file.
 
-For example, to change the `mit-scheme` executable to `mechanics` (see [how to install the scmutils library](https://groups.csail.mit.edu/mac/users/gjs/6946/installation.html)):
+For example, to change the `mit-scheme` executable to `mechanics`, which is the executable created when installing the [Scmutils library](https://groups.csail.mit.edu/mac/users/gjs/6946/installation.html)):
 
 ```bash
 cat << EOF > /tmp/my_config.yaml
