@@ -29,7 +29,8 @@ class MitSchemeMagic(Magic):
             if "\matrix" in line:
                 line = re.sub(r'\\cr\s*\\cr', r' \\\\\n', line)
                 line = f"\\renewcommand{{\\matrix}}[1]{{\\begin{{matrix}}#1\\end{{matrix}}}}\n{line}"
-                line = f"$${line}$$"
+
+            line = f"$${line}$$"
 
         return line
 
