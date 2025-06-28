@@ -34,11 +34,7 @@ class MitSchemeWrapper(REPLWrapper):
         self.child.delaybeforesend = 0.0
         self.bracket_balance = 0
 
-        self.restart = kernel_config.auto_restart_on_error
-        self.restart_command = kernel_config.restart_command
-        self.filter_output = kernel_config.filter_output
-        self.return_only_last_output = kernel_config.return_only_last_output
-        self.output_value_regex = re.compile(kernel_config.output_value_regex)
+        self.config = kernel_config
 
     def _check_bracket_balance(self, line):
         for char in line:
@@ -52,10 +48,11 @@ class MitSchemeWrapper(REPLWrapper):
         self.bracket_balance = 0
 
     def _filter_value(self, s: str) -> str:
-        match = re.search(self.output_value_regex, s)
+        match = re.search(self.config.output_value_regex, s)
         return match.group(1) if match else s
 
     def run_command(self, code, timeout=-1, stream_handler=None, stdin_handler=None):
+
         lines = code.splitlines()
         res = []
         error: bool = False
@@ -75,12 +72,12 @@ class MitSchemeWrapper(REPLWrapper):
                 error = True
 
         if error:
-            if self.restart:
+            if self.config.auto_restart_on_error:
                 self._restart_bracket_balance()
                 self.sendline(self.restart_command)
                 self._expect_prompt(timeout=timeout)
                 res.append(self.child.before)
-                res.append(f"Automatically restarted REPL with command: {self.restart_command}")
+                res.append(f"Automatically restarted REPL with command: {self.config.restart_command}")
 
         if self.bracket_balance != 0:
             res = [s.strip() for s in res if s.strip() and s is not None]
@@ -90,9 +87,16 @@ class MitSchemeWrapper(REPLWrapper):
                 error_msg += f"\nIntermediate output: {res}"
             raise ValueError(error_msg)
 
-        if self.return_only_last_output:
+        if self.config.return_only_last_output:
             res = res[-1:]
 
-        res = [s.strip() for s in res if s.strip() and s is not None]
+        output = []
+        expression = "show-expression" in code or "print-expression" in code
+        for r in res:
+            if r := r.strip():
+                if expression:
+                    output.append(self._filter_value(r.replace("\n", "").replace("\r", "").replace(";No return value.", "")))
+                else:
+                    output.append(self._filter_value(r))
 
-        return "\n".join([self._filter_value(s) for s in res]) if self.filter_output else "\n".join(res)
+        return "\n".join([self._filter_value(s) for s in output]) if self.config.filter_output else "\n".join(output)

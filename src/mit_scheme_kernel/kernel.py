@@ -6,6 +6,7 @@ from dataclasses import replace
 import yaml
 from metakernel import ProcessMetaKernel, pexpect
 
+from .magics import MitSchemeMagic
 from .repl import PROMPT_RE, KernelConfig, MitSchemeWrapper
 
 
@@ -31,6 +32,10 @@ class MitSchemeKernel(ProcessMetaKernel):
         "name": "mit-scheme-kernel",
     }
 
+    def _register_custom_magics(self):
+        """Register custom magics for the kernel"""
+        self.register_magics(MitSchemeMagic)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._process = None
@@ -49,19 +54,13 @@ class MitSchemeKernel(ProcessMetaKernel):
                     self.mit_scheme_config, **update
                 )
 
-    def do_execute(self, code, silent=True, **kwargs):
-        if not self._process:
-            self.mit_scheme_cmd = self.mit_scheme_config.executable
-            self._process = pexpect.spawn(self.mit_scheme_cmd, encoding="utf-8")
-        self._process.sendline(code)
-        super().do_execute_direct(code, silent=False)
-        return {
-            "status": "ok",
-            "execution_count": self.execution_count,
-        }
+
+        self._register_custom_magics()
 
     def makeWrapper(self):
-        """ """
+        """Create the wrapper for the MIT Scheme process"""
+        self.mit_scheme_cmd = self.mit_scheme_config.executable
+
         if pexpect.which(self.mit_scheme_cmd):
             program = self.mit_scheme_cmd
         else:
@@ -74,3 +73,10 @@ class MitSchemeKernel(ProcessMetaKernel):
             kernel_config=self.mit_scheme_config,
         )
         return wrapper
+
+    def do_execute_direct(self, code, silent=True, **kwargs):
+        if not self._process:
+            self.mit_scheme_cmd = self.mit_scheme_config.executable
+            self._process = pexpect.spawn(self.mit_scheme_cmd, encoding="utf-8")
+        result = super().do_execute_direct(code, silent=True)
+        return result
