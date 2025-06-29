@@ -12,7 +12,7 @@ DELIVERATE_ERROR_COMMAND = "__ERROR__COMMAND__"
 
 
 def _filter_outut(text: str) -> list[str] | None:
-    matches = re.findall(r"\s*:\s*([\d\w\n]+)", text)
+    matches = re.findall(r"\s*([\d\w\n]+)", text)
     if matches:
         values = matches[0].strip().split("\n")
         values = [v for v in values if v]
@@ -20,9 +20,11 @@ def _filter_outut(text: str) -> list[str] | None:
     return None
 
 
-def get_mit_scheme_kernel(monkeypatch, tmp_path: str = "/tmp", config: dict[str, str] = {}):
+def get_mit_scheme_kernel(monkeypatch, tmp_path: str = "/tmp", config: dict[str, str] = {}, executable: str = "mit-scheme", output_value_regex: str = "^;Value:\s*(.+)$"):
     config_file = Path(tmp_path, "mit_scheme_kernel_config.yaml")
     with open(config_file, "w") as f:
+        config["executable"] = executable
+        config["output_value_regex"] = output_value_regex
         yaml.dump(config, f)
 
     monkeypatch.setenv("MIT_SCHEME_KERNEL_CONFIG", str(config_file))
@@ -116,3 +118,25 @@ def test_behavior_on_error_multiline(monkeypatch):
 
     assert ";Value: 21.75" in result
     assert ";Value: 9.3" in result
+
+
+def test_magic(monkeypatch):
+    config = {"filter_output": True, "return_only_last_output": True}
+    kernel = get_mit_scheme_kernel(monkeypatch, config=config, executable="mechanics", output_value_regex=r"^\#\|\s*(.+)\s*\|\#$")
+
+    # Test the magic command
+    code = """
+%%show_expression
+(define ((L-free-particle mass) local)
+  (let ((v (velocity local)))
+    (* 1/2 mass (dot-product v v))))
+
+(show-expression ((L-free-particle 'm)
+                  (up 't
+                      (up 'x 'y 'z)
+                      (up 'xdot 'ydot 'zdot))))
+    """
+    kernel.call_magic(code)
+    # kernel.do_execute(code=code)
+    result = get_log_text(kernel)
+    assert "12" in result
