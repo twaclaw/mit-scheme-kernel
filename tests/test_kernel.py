@@ -119,14 +119,23 @@ def test_behavior_on_error_multiline(monkeypatch):
     assert ";Value: 21.75" in result
     assert ";Value: 9.3" in result
 
+def test_restart_kernel(monkeypatch):
+    config = {
+        "auto_restart_on_error": True,
+        "restart_command" : "(RESTART 1)",
+    }
+    command = f"(* 3 7.25)\n{DELIVERATE_ERROR_COMMAND}\n(* 3 3.1)"
+    kernel = get_mit_scheme_kernel(monkeypatch, config=config)
+    kernel.do_execute(code=command)
+    result = get_log_text(kernel)
+    assert "Abort" in result
+
 
 def test_magic(monkeypatch):
     config = {"filter_output": True, "return_only_last_output": True}
     kernel = get_mit_scheme_kernel(monkeypatch, config=config, executable="mechanics", output_value_regex=r"^\#\|\s*(.+)\s*\|\#$")
 
-    # Test the magic command
-    code = """
-%%show_expression
+    code = """%%show_expression
 (define ((L-free-particle mass) local)
   (let ((v (velocity local)))
     (* 1/2 mass (dot-product v v))))
@@ -136,7 +145,8 @@ def test_magic(monkeypatch):
                       (up 'x 'y 'z)
                       (up 'xdot 'ydot 'zdot))))
     """
-    kernel.call_magic(code)
-    # kernel.do_execute(code=code)
-    result = get_log_text(kernel)
-    assert "12" in result
+
+    kernel.do_execute(code=code)
+
+    magic = kernel.cell_magics['show_expression']
+    assert "last-tex-string-generated" in magic.code

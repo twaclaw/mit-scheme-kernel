@@ -75,7 +75,7 @@ class MitSchemeWrapper(REPLWrapper):
         if error:
             if self.config.auto_restart_on_error:
                 self._restart_bracket_balance()
-                self.sendline(self.restart_command)
+                self.sendline(self.config.restart_command)
                 self._expect_prompt(timeout=timeout)
                 res.append(self.child.before)
                 res.append(f"Automatically restarted REPL with command: {self.config.restart_command}")
