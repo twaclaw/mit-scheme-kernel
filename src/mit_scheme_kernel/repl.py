@@ -18,6 +18,7 @@ class KernelConfig:
     filter_output: bool
     return_only_last_output: bool
     output_value_regex: str
+    check_brackets_balance: bool = True
 
 
 class MitSchemeWrapper(REPLWrapper):
@@ -79,7 +80,7 @@ class MitSchemeWrapper(REPLWrapper):
                 res.append(self.child.before)
                 res.append(f"Automatically restarted REPL with command: {self.config.restart_command}")
 
-        if self.bracket_balance != 0:
+        if self.config.check_brackets_balance and  self.bracket_balance != 0:
             res = [s.strip() for s in res if s.strip() and s is not None]
             error_msg = UNBALANCED_BRACKETS_ERROR
             if len(res) > 0:
@@ -91,12 +92,8 @@ class MitSchemeWrapper(REPLWrapper):
             res = res[-1:]
 
         output = []
-        expression = "show-expression" in code or "print-expression" in code
         for r in res:
             if r := r.strip():
-                if expression:
-                    output.append(self._filter_value(r.replace("\n", "").replace("\r", "").replace(";No return value.", "")))
-                else:
-                    output.append(self._filter_value(r))
+                output.append(self._filter_value(r) if self.config.filter_output else r)
 
         return "\n".join([self._filter_value(s) for s in output]) if self.config.filter_output else "\n".join(output)
