@@ -27,6 +27,7 @@ keywords = [
     "scmutils",
     "jupyter",
     "scheme",
+    "metakernel",
 ]
 authors = [{ name = "Diego Sandoval", email = "dsandovalv@gmail.com" }]
 maintainers = [{ name = "Diego Sandoval", email = "dsandovalv@gmail.com" }]

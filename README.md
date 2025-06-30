@@ -7,8 +7,8 @@ A MIT/GNU Scheme Jupyter kernel based on [metakernel](https://github.com/Calysto
 ## Features
 
 - Interactive execution of MIT/GNU Scheme code in Jupyter notebooks.
-- The kernel  can be configured to use a different Scheme installation, such as the one provided by the [Scmutils libraries](https://groups.csail.mit.edu/mac/users/gjs/6946/installation.html). See the [Configuration](#configuration) section below for more information.
-- Implements a cell magic command `%%show_expression` to render the output of a cell into LaTeX, in the same way as the `show_expression` function in the Smcutils. See the [mechanics notebook](./examples/mechanics.ipynb) for an example.
+- The kernel  can be configured to use a different Scheme installation, such as the one provided by the [Scmutils library](https://groups.csail.mit.edu/mac/users/gjs/6946/installation.html). See the [Configuration](#configuration) section below for more information.
+- Implements a cell magic command `%%show_expression` to render the output of a cell into LaTeX, in the same way as the `show-expression` function in the `Smcutils`. See the [mechanics notebook](./examples/mechanics.ipynb) for an example.
 - Plus all the features provided by [metakernel](https://github.com/Calysto/metakernel).
 
 ## Installation
@@ -56,6 +56,7 @@ For example, to change the `mit-scheme` executable to `mechanics` (the executabl
 ```bash
 cat > /tmp/my_config.yaml << EOF
 executable: mechanics
+filter_output: true
 output_value_regex: ^\#\|\s*(.+)\s*\|\#$
 EOF
 
