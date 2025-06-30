@@ -8,8 +8,11 @@ executable: mit-scheme
 # see: https://groups.csail.mit.edu/mac/users/gjs/6946/mechanics-system-installation/native-code/installation.html
 
 filter_output: true
-output_value_regex: ^;Value:\s*([^\s]+)
-#output_value_regex: ^\#\|\s*([^\s]+)\s*\|\#$
+output_value_regex: ^;Value:\s*(.+)$
+#output_value_regex: ^\#\|\s*(.+)\s*\|\#$
+
+# Check that the brackets in the code are balanced.
+check_brackets_balance: true
 
 # if an error occurs in the mit-scheme REPL, the following options can be used to
 # automatically restart the REPL
