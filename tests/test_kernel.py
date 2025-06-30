@@ -150,3 +150,29 @@ def test_magic(monkeypatch):
 
     magic = kernel.cell_magics['show_expression']
     assert "last-tex-string-generated" in magic.code
+
+
+def test_magic_with_matrix(monkeypatch):
+    config = {"filter_output": True, "return_only_last_output": True}
+    kernel = get_mit_scheme_kernel(monkeypatch, config=config, executable="mechanics", output_value_regex=r"^\#\|\s*(.+)\s*\|\#$")
+
+    line1 = """(define ((L-uniform-acceleration m g) local)
+  (let ((q (coordinate local))
+        (v (velocity local)))
+    (let ((y (ref q 1)))
+      (- (* 1/2 m (square v)) (* m g y)))))
+    """
+
+    line2 = """%%show_expression
+(show-expression
+  (((Lagrange-equations
+      (L-uniform-acceleration 'm 'g))
+    (up (literal-function 'x)
+        (literal-function 'y)))
+   't))
+    """
+
+    kernel.do_execute(code=line1)
+    kernel.do_execute(code=line2)
+    magic = kernel.cell_magics['show_expression']
+    assert "last-tex-string-generated" in magic.code
