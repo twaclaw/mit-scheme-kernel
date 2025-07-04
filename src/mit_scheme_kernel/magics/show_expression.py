@@ -37,6 +37,10 @@ class MitSchemeMagic(Magic):
         self.code += "\n(display last-tex-string-generated)"
 
     def _expand_matrix(self, text: str):
+        """
+        Convert \matrix{EXPR} to \begin{matrix}EXPR\end{matrix}
+        Handles nested braces and multiple instances of the \matrix command.
+        """
         def find_matching_brace(text, start_pos):
             if start_pos >= len(text) or text[start_pos] != "{":
                 return -1
@@ -54,6 +58,21 @@ class MitSchemeMagic(Magic):
                 pos += 1
             return -1  # No matching brace found
 
+        def process_matrix_content(content):
+            content = self._expand_matrix(content)
+
+            rows = re.split(r'\\cr\s*\\cr', content)
+            cleaned_rows = []
+
+            for row in rows:
+                row = row.strip()
+                row = re.sub(r'^\\cr\s*', '', row)
+                row = re.sub(r'\s*\\cr\s*$', '', row)
+                if row:
+                    cleaned_rows.append(row)
+
+            return ' \\\\\n'.join(cleaned_rows)
+
         result = []
         i = 0
 
@@ -64,8 +83,12 @@ class MitSchemeMagic(Magic):
 
                 if closing_brace_pos != -1:
                     content = text[opening_brace_pos + 1 : closing_brace_pos]
-                    replacement = f"\\begin{{matrix}}\n{content}\n\\end{{matrix}}"
+
+                    processed_content = process_matrix_content(content)
+
+                    replacement = f"\\begin{{matrix}}\n{processed_content}\n\\end{{matrix}}"
                     result.append(replacement)
+
                     i = closing_brace_pos + 1
                 else:
                     result.append(text[i])
@@ -73,6 +96,7 @@ class MitSchemeMagic(Magic):
             else:
                 result.append(text[i])
                 i += 1
+
         return "".join(result)
 
     def _latexify(self, line):
@@ -80,10 +104,8 @@ class MitSchemeMagic(Magic):
         if match:
             line = match.group(1)
 
-            if "\matrix" in line:
+            if "\\matrix" in line:
                 line = self._expand_matrix(line)
-                line = re.sub(r"\\cr\s*\\cr", r" \\\\\n", line)
-                # TODO: handle column separators
                 self.matrix_command_defined = True
 
             line = f"$${line}$$"

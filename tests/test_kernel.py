@@ -6,6 +6,7 @@ import yaml
 from metakernel.tests.utils import get_kernel, get_log_text
 
 from mit_scheme_kernel.kernel import MitSchemeKernel
+from mit_scheme_kernel.magics import MitSchemeMagic
 from mit_scheme_kernel.repl import UNBALANCED_BRACKETS_ERROR
 
 DELIVERATE_ERROR_COMMAND = "__ERROR__COMMAND__"
@@ -47,13 +48,10 @@ def test_single_line_statements(monkeypatch, command: str, expected_output: str)
     result = get_log_text(kernel)
     assert expected_output in result
 
+
 @pytest.mark.parametrize(
     "command",
-    [
-        "\n\n(* 3 4)"
-        "\n\n\n(* 3 4)"
-        "(* 3 4)\n\n"
-    ],
+    ["\n\n(* 3 4)\n\n\n(* 3 4)(* 3 4)\n\n"],
 )
 def test_single_line_statements_strip_line(monkeypatch, command: str):
     config = {"filter_output": True, "return_only_last_output": True}
@@ -119,10 +117,11 @@ def test_behavior_on_error_multiline(monkeypatch):
     assert ";Value: 21.75" in result
     assert ";Value: 9.3" in result
 
+
 def test_restart_kernel(monkeypatch):
     config = {
         "auto_restart_on_error": True,
-        "restart_command" : "(RESTART 1)",
+        "restart_command": "(RESTART 1)",
     }
     command = f"(* 3 7.25)\n{DELIVERATE_ERROR_COMMAND}\n(* 3 3.1)"
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
@@ -148,7 +147,7 @@ def test_magic(monkeypatch):
 
     kernel.do_execute(code=code)
 
-    magic = kernel.cell_magics['show_expression']
+    magic = kernel.cell_magics["show_expression"]
     assert "last-tex-string-generated" in magic.code
 
 
@@ -174,5 +173,17 @@ def test_magic_with_matrix(monkeypatch):
 
     kernel.do_execute(code=line1)
     kernel.do_execute(code=line2)
-    magic = kernel.cell_magics['show_expression']
+    magic = kernel.cell_magics["show_expression"]
     assert "last-tex-string-generated" in magic.code
+
+
+def test_matrix_conversion(monkeypatch):
+    config = {"filter_output": True, "return_only_last_output": True}
+    kernel = get_mit_scheme_kernel(monkeypatch, config=config, executable="mechanics", output_value_regex=r"^\#\|\s*(.+)\s*\|\#$")
+
+    magic = MitSchemeMagic(kernel)
+    result = magic._expand_matrix(
+        "$$\left[ \matrix{ \displaystyle{ \left( \matrix{ \displaystyle{ 2 x + 2 y} \cr \cr \displaystyle{  - 3 {x}^{2} + 6 x y - 3 {y}^{2}} \cr \cr \displaystyle{ \exp\left( y \right) \exp\left( x \right)}} \right)} \cr \cr \displaystyle{ \left( \matrix{ \displaystyle{ 2 x + 2 y} \cr \cr \displaystyle{ 3 {x}^{2} - 6 x y + 3 {y}^{2}} \cr \cr \displaystyle{ \exp\left( y \right) \exp\left( x \right)}} \right)}} \right]$$"
+    )
+    assert "\\matrix" not in result
+    assert result.count("\\begin{matrix}") == 3
