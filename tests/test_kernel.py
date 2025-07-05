@@ -183,7 +183,15 @@ def test_matrix_conversion(monkeypatch):
 
     magic = MitSchemeMagic(kernel)
     result = magic._expand_matrix(
-        "$$\left[ \matrix{ \displaystyle{ \left( \matrix{ \displaystyle{ 2 x + 2 y} \cr \cr \displaystyle{  - 3 {x}^{2} + 6 x y - 3 {y}^{2}} \cr \cr \displaystyle{ \exp\left( y \right) \exp\left( x \right)}} \right)} \cr \cr \displaystyle{ \left( \matrix{ \displaystyle{ 2 x + 2 y} \cr \cr \displaystyle{ 3 {x}^{2} - 6 x y + 3 {y}^{2}} \cr \cr \displaystyle{ \exp\left( y \right) \exp\left( x \right)}} \right)}} \right]$$"
+        (
+            "$$\left[ \\matrix{ \\displaystyle{ \\left( \\matrix{ \\displaystyle{ 2 x + 2 y} \\cr \\cr "
+            "\\displaystyle{  - 3 {x}^{2} + 6 x y - 3 {y}^{2}} \\cr \\cr "
+            "\\displaystyle{ \\exp\\left( y \\right) \\exp\\left( x \\right)}} \\right)} \\cr \\cr "
+            "\\displaystyle{ \\left( \\matrix{ \\displaystyle{ 2 x + 2 y} \\cr \\cr "
+            "\\displaystyle{ 3 {x}^{2} - 6 x y + 3 {y}^{2}} \\cr \\cr "
+            "\\displaystyle{ \\exp\\left( y \\right) \\exp\\left( x \\right)}} \\right)}} \\right]$$"
+        )
     )
     assert "\\matrix" not in result
     assert result.count("\\begin{matrix}") == 3
+    assert result.count("\\end{matrix}") == 3
