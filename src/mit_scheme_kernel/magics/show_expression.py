@@ -41,6 +41,7 @@ class MitSchemeMagic(Magic):
         Convert \matrix{EXPR} to \begin{matrix}EXPR\end{matrix}
         Handles nested braces and multiple instances of the \matrix command.
         """
+
         def find_matching_brace(text, start_pos):
             if start_pos >= len(text) or text[start_pos] != "{":
                 return -1
@@ -61,17 +62,17 @@ class MitSchemeMagic(Magic):
         def process_matrix_content(content):
             content = self._expand_matrix(content)
 
-            rows = re.split(r'\\cr\s*\\cr', content)
+            rows = re.split(r"\\cr\s*\\cr", content)
             cleaned_rows = []
 
             for row in rows:
                 row = row.strip()
-                row = re.sub(r'^\\cr\s*', '', row)
-                row = re.sub(r'\s*\\cr\s*$', '', row)
+                row = re.sub(r"^\\cr\s*", "", row)
+                row = re.sub(r"\s*\\cr\s*$", "", row)
                 if row:
                     cleaned_rows.append(row)
 
-            return ' \\\\\n'.join(cleaned_rows)
+            return " \\\\\n".join(cleaned_rows)
 
         result = []
         i = 0

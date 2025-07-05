@@ -15,9 +15,7 @@ class MitSchemeKernel(ProcessMetaKernel):
     implementation_version = "0.1"
     language = "mit-scheme"
     language_version = "12.1"
-    banner = (
-        "MIT/GNU Scheme - A MIT/GNU Scheme Jupyter kernel"
-    )
+    banner = "MIT/GNU Scheme - A MIT/GNU Scheme Jupyter kernel"
     language_info = {
         "mimetype": "text/x-scheme",
         "name": "scheme",
@@ -39,9 +37,7 @@ class MitSchemeKernel(ProcessMetaKernel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._process = None
-        default_config = importlib.resources.files("mit_scheme_kernel").joinpath(
-            "config.yaml"
-        )
+        default_config = importlib.resources.files("mit_scheme_kernel").joinpath("config.yaml")
         with open(default_config) as f:
             params = yaml.safe_load(f)
             self.mit_scheme_config = KernelConfig(**params)
@@ -50,10 +46,7 @@ class MitSchemeKernel(ProcessMetaKernel):
             with open(user_config_path) as f:
                 user_config = yaml.safe_load(f)
                 update = {k: v for k, v in user_config.items() if hasattr(self.mit_scheme_config, k)}
-                self.mit_scheme_config = replace(
-                    self.mit_scheme_config, **update
-                )
-
+                self.mit_scheme_config = replace(self.mit_scheme_config, **update)
 
         self._register_custom_magics()
 

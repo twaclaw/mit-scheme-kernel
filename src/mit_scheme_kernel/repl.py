@@ -53,7 +53,6 @@ class MitSchemeWrapper(REPLWrapper):
         return match.group(1) if match else s
 
     def run_command(self, code, timeout=-1, stream_handler=None, stdin_handler=None):
-
         lines = code.splitlines()
         res = []
         error: bool = False
@@ -80,7 +79,7 @@ class MitSchemeWrapper(REPLWrapper):
                 res.append(self.child.before)
                 res.append(f"Automatically restarted REPL with command: {self.config.restart_command}")
 
-        if self.config.check_brackets_balance and  self.bracket_balance != 0:
+        if self.config.check_brackets_balance and self.bracket_balance != 0:
             res = [s.strip() for s in res if s.strip() and s is not None]
             error_msg = UNBALANCED_BRACKETS_ERROR
             if len(res) > 0:

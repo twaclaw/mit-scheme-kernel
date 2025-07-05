@@ -77,7 +77,7 @@ line-length = 179
 indent-width = 4
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = ["E", "F", "I", "T201"]
 ignore = ["F722"]
 
 [tool.ruff.format]
