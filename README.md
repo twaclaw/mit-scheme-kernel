@@ -73,5 +73,5 @@ Take a look at the [contributing guidelines](./CONTRIBUTING.md) for more informa
 ## Credits
 
 - This kernel is built on top of [Calysto/Metakernel](https://github.com/Calysto/metakernel).
-- This kernel relies on [GNU/MIT Scheme](https://www.gnu.org/software/mit-scheme/) as its Scheme implementation and was originally inspired by the excellent book [The Structure and Interpretation of Classical Mechanics](https://mitpress.mit.edu/9780262028967/structure-and-interpretation-of-classical-mechanics/) (MIT Press, 2015, second edition) by Gerald Jay Sussman and Jack Wisdom.
+- This kernel relies on [MIT/GNU Scheme](https://www.gnu.org/software/mit-scheme/) as its Scheme implementation and was originally [inspired](https://twaclaw.github.io/posts/projects/mit_scheme/) by the excellent book [The Structure and Interpretation of Classical Mechanics](https://mitpress.mit.edu/9780262028967/structure-and-interpretation-of-classical-mechanics/) (MIT Press, 2015, second edition) by Gerald Jay Sussman and Jack Wisdom.
 - This kernel uses the impressive functionality provided by the [Jupyter Project](https://jupyter.org/).
