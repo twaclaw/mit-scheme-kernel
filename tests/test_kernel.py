@@ -1,13 +1,15 @@
+import asyncio
 import re
 from pathlib import Path
 
 import pytest
 import yaml
-from metakernel.tests.utils import get_kernel, get_log_text
 
 from mit_scheme_kernel.kernel import MitSchemeKernel
 from mit_scheme_kernel.magics import MitSchemeMagic
 from mit_scheme_kernel.repl import UNBALANCED_BRACKETS_ERROR
+
+from .utils import get_kernel, get_log_text
 
 DELIVERATE_ERROR_COMMAND = "__ERROR__COMMAND__"
 
@@ -21,7 +23,7 @@ def _filter_outut(text: str) -> list[str] | None:
     return None
 
 
-def get_mit_scheme_kernel(monkeypatch, tmp_path: str = "/tmp", config: dict[str, str] = {}, executable: str = "mit-scheme", output_value_regex: str = "^;Value:\s*(.+)$"):
+def get_mit_scheme_kernel(monkeypatch, tmp_path: str = "/tmp", config: dict[str, str] = {}, executable: str = "mit-scheme", output_value_regex: str = r"^;Value:\s*(.+)$"):
     config_file = Path(tmp_path, "mit_scheme_kernel_config.yaml")
     with open(config_file, "w") as f:
         config["executable"] = executable
@@ -44,7 +46,7 @@ def test_single_line_statements(monkeypatch, command: str, expected_output: str)
     config = {"filter_output": True, "return_only_last_output": True}
 
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
-    kernel.do_execute(code=command)
+    asyncio.run(kernel.do_execute(code=command))
     result = get_log_text(kernel)
     assert expected_output in result
 
@@ -57,7 +59,7 @@ def test_single_line_statements_strip_line(monkeypatch, command: str):
     config = {"filter_output": True, "return_only_last_output": True}
 
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
-    kernel.do_execute(code=command)
+    asyncio.run(kernel.do_execute(code=command))
     result = get_log_text(kernel)
     assert "12" in result
 
@@ -70,7 +72,7 @@ def test_unbalanced_brackets(monkeypatch, command: str):
     config = {"filter_output": True, "return_only_last_output": True}
 
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
-    kernel.do_execute(code=command)
+    asyncio.run(kernel.do_execute(code=command))
     result = get_log_text(kernel)
     assert UNBALANCED_BRACKETS_ERROR in result
 
@@ -89,7 +91,7 @@ def test_multi_line_statements_last_output_line(monkeypatch, command: str, expec
     config = {"filter_output": True, "return_only_last_output": False}
 
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
-    kernel.do_execute(code=command)
+    asyncio.run(kernel.do_execute(code=command))
     result = get_log_text(kernel)
     value = _filter_outut(result)
     assert value == expected_output
@@ -99,7 +101,7 @@ def test_errors(monkeypatch):
     config = {"filter_output": True, "return_only_last_output": False}
 
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
-    kernel.do_execute(code=DELIVERATE_ERROR_COMMAND)
+    asyncio.run(kernel.do_execute(code=DELIVERATE_ERROR_COMMAND))
     result = get_log_text(kernel)
     assert "RESTART" in result
 
@@ -111,7 +113,7 @@ def test_behavior_on_error_multiline(monkeypatch):
     }
     command = f"(* 3 7.25)\n{DELIVERATE_ERROR_COMMAND}\n(* 3 3.1)"
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
-    kernel.do_execute(code=command)
+    asyncio.run(kernel.do_execute(code=command))
     result = get_log_text(kernel)
 
     assert ";Value: 21.75" in result
@@ -125,7 +127,7 @@ def test_restart_kernel(monkeypatch):
     }
     command = f"(* 3 7.25)\n{DELIVERATE_ERROR_COMMAND}\n(* 3 3.1)"
     kernel = get_mit_scheme_kernel(monkeypatch, config=config)
-    kernel.do_execute(code=command)
+    asyncio.run(kernel.do_execute(code=command))
     result = get_log_text(kernel)
     assert "Abort" in result
 
@@ -145,7 +147,7 @@ def test_magic(monkeypatch):
                       (up 'xdot 'ydot 'zdot))))
     """
 
-    kernel.do_execute(code=code)
+    asyncio.run(kernel.do_execute(code=code))
 
     magic = kernel.cell_magics["show_expression"]
     assert "last-tex-string-generated" in magic.code
@@ -171,8 +173,8 @@ def test_magic_with_matrix(monkeypatch):
    't))
     """
 
-    kernel.do_execute(code=line1)
-    kernel.do_execute(code=line2)
+    asyncio.run(kernel.do_execute(code=line1))
+    asyncio.run(kernel.do_execute(code=line2))
     magic = kernel.cell_magics["show_expression"]
     assert "last-tex-string-generated" in magic.code
 
@@ -184,7 +186,7 @@ def test_matrix_conversion(monkeypatch):
     magic = MitSchemeMagic(kernel)
     result = magic._expand_matrix(
         (
-            "$$\left[ \\matrix{ \\displaystyle{ \\left( \\matrix{ \\displaystyle{ 2 x + 2 y} \\cr \\cr "
+            "$$\\left[ \\matrix{ \\displaystyle{ \\left( \\matrix{ \\displaystyle{ 2 x + 2 y} \\cr \\cr "
             "\\displaystyle{  - 3 {x}^{2} + 6 x y - 3 {y}^{2}} \\cr \\cr "
             "\\displaystyle{ \\exp\\left( y \\right) \\exp\\left( x \\right)}} \\right)} \\cr \\cr "
             "\\displaystyle{ \\left( \\matrix{ \\displaystyle{ 2 x + 2 y} \\cr \\cr "

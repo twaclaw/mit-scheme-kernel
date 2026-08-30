@@ -37,7 +37,7 @@ class MitSchemeMagic(Magic):
         self.code += "\n(display last-tex-string-generated)"
 
     def _expand_matrix(self, text: str):
-        """
+        r"""
         Convert \matrix{EXPR} to \begin{matrix}EXPR\end{matrix}
         Handles nested braces and multiple instances of the \matrix command.
         """

@@ -3,7 +3,7 @@ name = "mit-scheme-kernel"
 dynamic = ['version']
 description = "A MIT/GNU Scheme Jupyter kernel based on metakernel"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Education",
@@ -15,7 +15,6 @@ classifiers = [
     "Operating System :: POSIX",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -33,10 +32,14 @@ keywords = [
 authors = [{ name = "Diego Sandoval", email = "dsandovalv@gmail.com" }]
 maintainers = [{ name = "Diego Sandoval", email = "dsandovalv@gmail.com" }]
 
-dependencies = ["metakernel>=0.30.3", "pyyaml>=6.0.2"]
+dependencies = [
+    "metakernel>=1.0.7",
+    "pyyaml>=6.0.2",
+    "matplotlib>=3.7",
+]
 
 [project.optional-dependencies]
-dev = ["pre-commit", "hatch", "ruff"]
+dev = ["pre-commit", "hatch", "ruff", "pytest", "nbclient", "nbformat", "pillow"]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -53,13 +56,17 @@ source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mit_scheme_kernel"]
-include = ["src/mit_scheme_kernel/config.yaml"]
+include = [
+    "src/mit_scheme_kernel/config.yaml",
+    "src/mit_scheme_kernel/plotting.scm",
+]
 
 
 [tool.hatch.build.targets.sdist]
 include = [
     "src/mit_scheme_kernel",
     "src/mit_scheme_kernel/config.yaml",
+    "src/mit_scheme_kernel/plotting.scm",
     "README.md",
 ]
 
@@ -67,10 +74,10 @@ include = [
 installer = "uv"
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.10", "3.11", "3.12", "3.13", "3.14"]
+python = ["3.11", "3.12", "3.13", "3.14"]
 
 [tool.hatch.envs.hatch-test]
-dependencies = ["pytest", "pytest-cov"]
+dependencies = ["pytest", "pytest-cov", "nbclient", "nbformat", "pillow"]
 dev-mode = true
 
 [tool.ruff]

@@ -19,6 +19,7 @@ class KernelConfig:
     return_only_last_output: bool
     output_value_regex: str
     check_brackets_balance: bool = True
+    inline_plots: bool = True
 
 
 class MitSchemeWrapper(REPLWrapper):
@@ -52,7 +53,7 @@ class MitSchemeWrapper(REPLWrapper):
         match = re.search(self.config.output_value_regex, s)
         return match.group(1) if match else s
 
-    def run_command(self, code, timeout=-1, stream_handler=None, stdin_handler=None):
+    def run_command(self, code, timeout=-1, stream_handler=None, line_handler=None, stdin_handler=None):
         lines = code.splitlines()
         res = []
         error: bool = False

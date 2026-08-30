@@ -6,7 +6,7 @@ from dataclasses import replace
 import yaml
 from metakernel import ProcessMetaKernel, pexpect
 
-from .magics import MitSchemeMagic
+from .magics import MitSchemeMagic, MitSchemePlotMagic
 from .repl import PROMPT_RE, KernelConfig, MitSchemeWrapper
 
 
@@ -33,6 +33,27 @@ class MitSchemeKernel(ProcessMetaKernel):
     def _register_custom_magics(self):
         """Register custom magics for the kernel"""
         self.register_magics(MitSchemeMagic)
+        self.register_magics(MitSchemePlotMagic)
+
+    def _enable_inline_plots(self, wrapper):
+        """Replace the X11 graphics primitives with recording ones.
+
+        Loaded into the REPL environment explicitly: `load` defaults to
+        `user-initial-environment`, where the scmutils graphics bindings the
+        shim needs to `set!` are not visible. Guarded on `make-display-frame`
+        so a plain mit-scheme without scmutils is left alone rather than
+        dropped into an error REPL at startup.
+        """
+        path = str(importlib.resources.files("mit_scheme_kernel").joinpath("plotting.scm"))
+        escaped = path.replace("\\", "\\\\").replace('"', '\\"')
+        try:
+            wrapper.run_command(
+                "(if (environment-bound? (nearest-repl/environment) (quote make-display-frame))"
+                f' (load "{escaped}" (nearest-repl/environment))'
+                " (quote inline-plotting-unavailable))"
+            )
+        except Exception:  # noqa: BLE001 - plotting is optional, the REPL is not
+            pass
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -65,6 +86,8 @@ class MitSchemeKernel(ProcessMetaKernel):
             None,
             kernel_config=self.mit_scheme_config,
         )
+        if self.mit_scheme_config.inline_plots:
+            self._enable_inline_plots(wrapper)
         return wrapper
 
     def do_execute_direct(self, code, silent=True, **kwargs):

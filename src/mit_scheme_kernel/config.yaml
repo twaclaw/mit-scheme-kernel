@@ -22,3 +22,10 @@ restart_command: (RESTART 1)
 # If a block of code of executed, mit-scheme outputs the results of all intermediate
 # expressions. If return_only_last_output is true, only the last output is returned.
 return_only_last_output: false
+
+# Render scmutils plots inline instead of drawing them through X11
+# When true, the graphics primitives are replaced at
+# REPL startup so `frame`, `plot-function`, `plot-point` and the rest record
+# what they draw; the `%%plot` cell magic then renders it with matplotlib.
+# Ignored when the Scheme in use has no scmutils graphics.
+inline_plots: true
